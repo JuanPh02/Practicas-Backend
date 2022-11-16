@@ -14,6 +14,7 @@ const CompaniesSchema = new Schema({
     //rut_file:String,
     email:String,
     //agreement_file:String
+    
 })
 //Convert Model
 module.exports= mongoose.model('companies',CompaniesSchema) 

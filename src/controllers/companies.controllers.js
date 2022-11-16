@@ -1,40 +1,58 @@
 const CompanyCtrl = {}
 const Company = require('../models/companies.models')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
-
-CompanyCtrl.createCompany = async (req, res) => {
+CompanyCtrl.createCompany = async (req, res, next) => {
     try {
         const { nit, company_name, sector, employers_number, webpage, country, department, city,  email} = req.body
 
         const newCompany = new Company({
             nit,
             company_name,
-            //logo_file,
             sector,
             employers_number,
             webpage,
             country,
             department,
             city,
-            //rut_file,
             email,
-            //agreement_file
+            
         })
         const nitCompany = await Company.findOne({ nit: nit })
         if (nitCompany) {
-            res.send("Esta empresa ya esta creada")
+            return res.send("Esta empresa ya esta creada")
         }
         else {
+            const token = jwt.sign({ _id: newCompany._id }, "Secreto")
             await newCompany.save()
             res.send("Lista la empresa")
+            next()
         }
 
     } catch (error) {
-        return res.send({
-            ok: false,
-            message: "Ha ocurrido un error creando la empresa",
-            content: error,
-        });
+        return console.log("problemas")
+    }
+}
+
+CompanyCtrl.login = async (req, res) => {
+    const { nit, password } = req.body
+    const company = await Company.findOne({ document: nit })
+    if (!company) {
+        res.send("Nit incorrecto")
+    }
+    const match = await bcrypt.compare(password, company.password)
+    if (match) {
+        const token = jwt.sign({ _id: company._id }, "Secreta")
+        await res.json({
+            nit: company.nit,
+            message: 'Bienvenido',
+            name: company.company_name,
+            token
+        })
+    }
+    else {
+        res.send('Contraseña incorrecta')
     }
 }
 

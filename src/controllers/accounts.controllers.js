@@ -1,22 +1,24 @@
 const AccountsCtrl = {}
 const Account = require('../models/accounts.models')
-const Contact = require('../models/contacts.models')
+//const Contact = require('../models/contacts.models')
+const Student = require('../models/students.models')
+const Company = require('../models/companies.models')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
-AccountsCtrl.createAccountContact = async (req, res) => {
+AccountsCtrl.createAccountCompany = async (req, res) => {
     try {
-        const { document, password } = req.body
+        const { nit, password } = req.body
 
         const newAccount = new Account({
-            document,
+            document: nit,
             password,
             rol: 1984
         })
 
-        const docAccount = await Account.findOne({ document: document })
+        const docAccount = await Account.findOne({ document: nit })
         if (docAccount) {
-            res.send("Este contacto ya esta creado")
+            res.send("Esta empresa ya esta creado")
         }
         else {
             newAccount.password = await bcrypt.hash(password, 10)
@@ -26,11 +28,7 @@ AccountsCtrl.createAccountContact = async (req, res) => {
         }
 
     } catch (error) {
-        // return res.json({
-        //     ok: false,
-        //     message: "Ha ocurrido un error obteniendo los usuarios",
-        //     content: error,
-        // });
+        return console.log("")
     }
 }
 
@@ -43,12 +41,11 @@ AccountsCtrl.login = async (req, res) => {
         const match = await bcrypt.compare(password, account.password)
         if (match) {
             const token = jwt.sign({ _id: account._id }, "Secreta")
-            const docContact = await Contact.findOne({ document: document })
+            const nitCompany = await Company.findOne({ document: document })
             await res.json({
-                document: document,
+                nit: nitCompany.nit,
                 message: 'Bienvenido',
-                name: docContact.name + " " + docContact.first_lastname,
-                rol: account.rol,
+                name: nitCompany.company_name,
                 token
             })
         }
@@ -57,4 +54,6 @@ AccountsCtrl.login = async (req, res) => {
         }
     }
 }
+
+
 module.exports = AccountsCtrl
